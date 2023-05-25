@@ -17,8 +17,11 @@ namespace ExternalAPI.Controllers
             this._ServiceAggregator = ServiceAggregator;
         }
 
-        [HttpPost("GenerateSession")]
-        public async Task<OutputMessage<RegisterModuleConnectionOutputDto>> CreateSession([FromBody] RegisterModuleConnectionInputDto input) => await (new RegisterModuleConnectionOperation((ServiceAggregator)_ServiceAggregator)).Init(input);
+        [HttpPost("RegisterModuleConnection")]
+        public async Task<OutputMessage<RegisterModuleConnectionOutputDto>> RegisterModuleConnection([FromBody] RegisterModuleConnectionInputDto input) => await (new RegisterModuleConnectionOperation((ServiceAggregator)_ServiceAggregator)).Init(input);
+        
+        [HttpPost("CloseModuleConnection")]
+        public async Task<OutputMessage<CloseModuleConnectionOutputDto>> CloseModuleConnection([FromBody] CloseModuleConnectionInputDto input) => await (new CloseModuleConnectionOperation((ServiceAggregator)_ServiceAggregator)).Init(input);
 
     }
 }

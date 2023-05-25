@@ -1,6 +1,6 @@
 ﻿using ExternalAPI.Models.DatabaseDtos;
 
-namespace ExternalAPI.Models.Dtos.Authentication
+namespace ExternalAPI.Models.Dtos.Users
 {
     public class CreateUserInputDto
     {

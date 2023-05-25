@@ -14,7 +14,6 @@
         }
 
         public IDatabaseProvider DatabaseProvider => _DatabaseProvider;
-
         public ISessionProvider SessionProvider => _SessionProvider;
         public IBrokerProvider BrokerProvider => _BrokerProvider;
     }

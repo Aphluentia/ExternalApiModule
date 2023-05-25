@@ -9,7 +9,6 @@ namespace ExternalAPI.Helpers
 {
     public class AuthenticationHelper
     {
-        private static readonly string JWT_KEY = "JWT_KEY";
         public static bool AuthenticateUser(string UserPassword, string ProvidedPassword)
         {
             if (string.Equals(HashPassword(ProvidedPassword), UserPassword))

@@ -26,7 +26,6 @@ namespace ExternalAPI.Controllers
         public async Task<OutputMessage<GenerateSessionOutputDto>> CreateSession([FromBody] GenerateSessionInputDto generateSessionInputDto) => await (new GenerateSessionOperation((ServiceAggregator)_ServiceAggregator)).Init(generateSessionInputDto);
 
 
-        [HttpPost("CreateUser")]
-        public async Task<OutputMessage<CreateUserOutputDto>> CreateUser([FromBody] CreateUserInputDto input) => await (new CreateUserOperation((ServiceAggregator)_ServiceAggregator)).Init(input);
+       
     }
 }

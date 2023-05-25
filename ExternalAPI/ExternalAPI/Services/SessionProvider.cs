@@ -55,6 +55,11 @@ namespace ExternalApi.Services
 
             return tokenHandler.WriteToken(token);
         }
+
+
+
+        
+
         public string KeepAlive(string token)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_sessionConfigSection.JWTSecret));
@@ -77,7 +82,7 @@ namespace ExternalApi.Services
             return tokenHandler.WriteToken(newToken); 
         }
 
-        public (string?, PermissionLevel?, Guid?) GetClaims(string Token)
+        public (string?, PermissionLevel?, string?) GetClaims(string Token)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_sessionConfigSection.JWTSecret));
             var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -86,7 +91,7 @@ namespace ExternalApi.Services
             var decodedToken = tokenHandler.ReadJwtToken(Token);
 
             var claims = decodedToken.Claims;
-            return (claims.FirstOrDefault(c => c.Type == "UserEmail")?.Value, (PermissionLevel)Enum.Parse(typeof(PermissionLevel), claims.FirstOrDefault(c => c.Type == "PermissionLevel")?.Value), Guid.Parse(claims.FirstOrDefault(c => c.Type == "WebPlatformId")?.Value));
+            return (claims.FirstOrDefault(c => c.Type == "UserEmail")?.Value, (PermissionLevel)Enum.Parse(typeof(PermissionLevel), claims.FirstOrDefault(c => c.Type == "PermissionLevel")?.Value), claims.FirstOrDefault(c => c.Type == "WebPlatformId")?.Value);
         }
         public bool ValidateToken(string Token)
         {

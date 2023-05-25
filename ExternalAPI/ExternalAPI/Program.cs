@@ -12,7 +12,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.Configure<RedisCacheConfigSection>(builder.Configuration.GetSection("RedisCacheConfigSection"));
 builder.Services.Configure<DatabaseApiConfigSection>(builder.Configuration.GetSection("DatabaseApiConfigSection"));
 builder.Services.Configure<SessionConfigSection>(builder.Configuration.GetSection("SessionConfigSection"));
 builder.Services.Configure<BrokerApiConfigSection>(builder.Configuration.GetSection("BrokerApiConfigSection")); 

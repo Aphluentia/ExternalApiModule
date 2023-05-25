@@ -1,4 +1,5 @@
-﻿using ExternalAPI.Models.Enums;
+﻿using ExternalAPI.Models.Entities;
+using ExternalAPI.Models.Enums;
 
 namespace ExternalAPI.Models.DatabaseDtos
 {
@@ -8,7 +9,7 @@ namespace ExternalAPI.Models.DatabaseDtos
         public Guid? WebPlatformId { get; set; }
         public string Email { get; set; }
         public string Name { get; set; }
-        public ISet<string>? ModuleIds { get; set; }
+        public ISet<string>? Modules { get; set; }
         public ISet<string>? ActiveScenariosIds { get; set; }
 
         public string Password { get; set; }

@@ -1,7 +1,6 @@
 ﻿using ExternalAPI.Helpers;
-using ExternalAPI.Models.DatabaseDtos;
 using ExternalAPI.Models.Dtos;
-using ExternalAPI.Models.Dtos.Authentication;
+using ExternalAPI.Models.Dtos.Users;
 using ExternalAPI.Models.Entities;
 using ExternalAPI.Services.Base;
 using Newtonsoft.Json;
@@ -22,6 +21,7 @@ namespace ExternalAPI.Operations
         public async override Task<OutputMessage<CreateUserOutputDto>> Run(CreateUserInputDto input)
         {
             input.User.Password = AuthenticationHelper.HashPassword(input.User.Password);
+            
             var (success, data) = await _ServiceAggregator.DatabaseProvider.Post($"/User", input.User);
             if (!success || string.IsNullOrEmpty(data))
                 return OutputMessage<CreateUserOutputDto>.GetOutputMessage().AddError(ApplicationErrors.FailedToCreateUser);
