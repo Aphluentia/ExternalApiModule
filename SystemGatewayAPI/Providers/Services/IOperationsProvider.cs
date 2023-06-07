@@ -13,7 +13,7 @@ namespace SystemGateway.Providers
         public Task<bool> RegisterUser(User user); 
         public Task<bool> UpdateUser(string Email, User updatedUser);
         public Task<bool> DeleteUser(string Email);
-        public Task<bool> RegisterConnection(ModuleConnection updatedUser);
-        public Task<bool> DeleteConnection(Guid WebPlatformId, Guid ModuleId);
+        public Task<bool> RegisterConnection(ModuleConnection moduleConnection);
+        public Task<bool> DeleteConnection(ModuleConnection moduleConnection);
     }
 }

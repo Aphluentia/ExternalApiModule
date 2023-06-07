@@ -49,9 +49,9 @@ namespace SystemGateway.Providers
                 return false;
             return true;
         }
-        public async Task<bool> DeleteConnection(Guid WebPlatformId, Guid ModuleId)
+        public async Task<bool> DeleteConnection(ModuleConnection moduleConnection)
         {
-            var response = await _httpClient.DeleteAsync($"{_BaseUrl}/api/User/Connection/{WebPlatformId}/{ModuleId}");
+            var response = await _httpClient.DeleteAsync($"{_BaseUrl}/api/User/Connection/{moduleConnection.WebPlatformId}/{moduleConnection.ModuleId}");
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;

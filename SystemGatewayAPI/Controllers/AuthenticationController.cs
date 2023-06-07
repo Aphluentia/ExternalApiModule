@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using SystemGateway.Configurations;
 using SystemGateway.Dtos;
 using SystemGateway.Dtos.Input;
+using SystemGateway.Dtos.SecurityManager;
 using SystemGateway.Helpers;
 using SystemGateway.Providers;
 
@@ -36,7 +37,19 @@ namespace SystemGateway.Controllers
                 return BadRequest();
             return Ok(token);
         }
+        [HttpPost]
+        public async Task<IActionResult> KeepAlive([FromBody] TokenDto input)
+        {
+            if (string.IsNullOrEmpty(await ServiceAggregator.SecurityManagerProvider.ValidateSession(input.Token)))
+            {
+                return Unauthorized();
+            }
+            var token = await ServiceAggregator.SecurityManagerProvider.KeepAlive(input.Token);
+            if (string.IsNullOrEmpty(token))
+                return BadRequest();
+            return Ok(token);
+        }
 
-      
+
     }
 }

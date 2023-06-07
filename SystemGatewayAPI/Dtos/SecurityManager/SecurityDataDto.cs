@@ -14,7 +14,7 @@ namespace SystemGateway.Dtos.SecurityManager
             {
                 UserId = "",
                 UserName = "",
-                PermissionLevel = -1,
+                PermissionLevel = Permission.Client,
                 WebPlatformId = Guid.Empty
             };
         }
