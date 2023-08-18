@@ -18,35 +18,36 @@ namespace SystemGateway.Providers
 
         public async Task<string> GenerateSession(SecurityDataDto securityData)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{_BaseUrl}/api/Session/GenerateSession", securityData);
+            var response = await _httpClient.PostAsJsonAsync($"{_BaseUrl}/Session/GenerateSession", securityData);
             if (!response.IsSuccessStatusCode)
                 return "";
             return await response.Content.ReadAsStringAsync();
         }
 
-        public async Task<SecurityDataDto> GetTokenData(string Token)
+        public async Task<SecurityDataDto?> GetTokenData(string Token)
         {
             var response = await _httpClient.GetAsync($"{_BaseUrl}/api/Session/RetrieveSessionData/{Token}");
             if (!response.IsSuccessStatusCode)
-                return SecurityDataDto.Empty();
+                return null;
             var data = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(data)) return null;
             return JsonConvert.DeserializeObject<SecurityDataDto>(data);
         }
 
-        public async Task<string> KeepAlive(string _token)
+        public async Task<bool> KeepAlive(string _token)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{_BaseUrl}/api/Session/KeepAlive", new TokenDto { Token = _token });
+            var response = await _httpClient.GetAsync($"{_BaseUrl}/api/Session/KeepAlive/{_token}");
             if (!response.IsSuccessStatusCode)
-                return "";
-            return await response.Content.ReadAsStringAsync();
+                return false;
+            return true;
         }
 
-        public async Task<string> ValidateSession(string _token)
+        public async Task<bool> ValidateSession(string _token)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{_BaseUrl}/api/Session/ValidateSession", new TokenDto { Token = _token });
+            var response = await _httpClient.GetAsync($"{_BaseUrl}/api/Session/ValidateSession/{_token}");
             if (!response.IsSuccessStatusCode)
-                return "";
-            return await response.Content.ReadAsStringAsync();
+                return false;
+            return true;
         }
     }
 }

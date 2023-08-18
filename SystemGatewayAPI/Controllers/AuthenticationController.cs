@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DatabaseApi.Models.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
-using SystemGateway.Configurations;
-using SystemGateway.Dtos;
 using SystemGateway.Dtos.Input;
 using SystemGateway.Dtos.SecurityManager;
 using SystemGateway.Helpers;
 using SystemGateway.Providers;
+using SystemGatewayAPI.Dtos;
 
 namespace SystemGateway.Controllers
 {
@@ -19,36 +19,79 @@ namespace SystemGateway.Controllers
         {
             this.ServiceAggregator = aggregator;
         }
-        [HttpPost]
+        [HttpPost("AuthenticateUser")]
         public async Task<IActionResult> AuthenticateUser([FromBody] AuthenticateUserInputDto input)
         {
-            var user = await ServiceAggregator.DatabaseProvider.FindUserById(input.Email);
-            
-            if (AuthenticationHelper.AuthenticateUser(UserPassword: user.Password, ProvidedPassword: input.Password))
-                return Unauthorized();
-            var token = await ServiceAggregator.SecurityManagerProvider.GenerateSession(new Dtos.SecurityManager.SecurityDataDto
+            switch (input.UserType)
             {
-                UserId = user.Email,
-                UserName = user.Name,
-                PermissionLevel = user.PermissionLevel,
-                WebPlatformId = user.WebPlatformId
-            });
-            if (string.IsNullOrEmpty(token))
-                return BadRequest();
-            return Ok(token);
-        }
-        [HttpPost]
-        public async Task<IActionResult> KeepAlive([FromBody] TokenDto input)
-        {
-            if (string.IsNullOrEmpty(await ServiceAggregator.SecurityManagerProvider.ValidateSession(input.Token)))
-            {
-                return Unauthorized();
+                case Dtos.Enum.UserType.Patient:
+                    var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(input.Email);
+                    if (patient == null) return BadRequest(ApplicationErrors.UserNotFound);
+                    if (!AuthenticationHelper.AuthenticateUser(patient.Password, input.Password)) return BadRequest(ApplicationErrors.InvalidCredentials);
+                    break;
+                case Dtos.Enum.UserType.Therapist:
+                    var therapist = await ServiceAggregator.DatabaseProvider.FindTherapistById(input.Email);
+                    if (therapist == null) return BadRequest(ApplicationErrors.UserNotFound);
+                    if (!AuthenticationHelper.AuthenticateUser(therapist.Password, input.Password)) return BadRequest(ApplicationErrors.InvalidCredentials);
+                    break;
+                default:
+                    return BadRequest();
             }
-            var token = await ServiceAggregator.SecurityManagerProvider.KeepAlive(input.Token);
-            if (string.IsNullOrEmpty(token))
-                return BadRequest();
-            return Ok(token);
+          
+            return Ok("User Authenticated");
         }
+        [HttpPost("RegisterPatient")]
+        public async Task<IActionResult> RegisterPatient([FromBody] Patient patient)
+        {
+            if (string.IsNullOrEmpty(patient.Email)) return BadRequest("Email is Required");
+            if (string.IsNullOrEmpty(patient.Password)) return BadRequest("Password is Required");
+            if (string.IsNullOrEmpty(patient.FirstName)) return BadRequest("First Name is Required");
+            if (string.IsNullOrEmpty(patient.LastName)) return BadRequest("Last Name is Required");
+            var patientExists = await ServiceAggregator.DatabaseProvider.FindPatientById(patient.Email);
+            if (patientExists != null) return BadRequest("That Email is already In Use");
+
+            patient.Password = AuthenticationHelper.HashPassword(patient.Password);
+            patient.WebPlatform = null;
+            
+            var registerPatient = await ServiceAggregator.OperationsManagerProvider.RegisterPatient(patient);
+            if (!registerPatient) return BadRequest("Failed to register user");
+            return Ok($"Welcome {patient.FirstName} {patient.LastName}");
+        }
+        [HttpPost("RegisterTherapist")]
+        public async Task<IActionResult> RegisterTherapist([FromBody] Therapist therapist)
+        {
+            if (string.IsNullOrEmpty(therapist.Email)) return BadRequest("Email is Required");
+            if (string.IsNullOrEmpty(therapist.Password)) return BadRequest("Password is Required");
+            if (string.IsNullOrEmpty(therapist.FirstName)) return BadRequest("First Name is Required");
+            if (string.IsNullOrEmpty(therapist.LastName)) return BadRequest("Last Name is Required");
+            var patientExists = await ServiceAggregator.DatabaseProvider.FindTherapistById(therapist.Email);
+            if (patientExists != null) return BadRequest("That Email is already In Use");
+
+            therapist.Password = AuthenticationHelper.HashPassword(therapist.Password);
+
+            var registerPatient = await ServiceAggregator.OperationsManagerProvider.RegisterTherapist(therapist);
+            if (!registerPatient) return BadRequest("Failed to register user");
+            return Ok($"Welcome {therapist.FirstName} {therapist.LastName}");
+        }
+
+        [HttpGet("Information/{UserEmail}")]
+        public async Task<ActionResult<UserDetailsDto>> GetUserDetails(string UserEmail)
+        {
+            if (string.IsNullOrEmpty(UserEmail)) return BadRequest("Email is Required");
+            var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(UserEmail);
+            if (patient != null)
+            {
+                return Ok(UserDetailsDto.FromPatient(patient));
+            }
+            var therapist = await ServiceAggregator.DatabaseProvider.FindTherapistById(UserEmail);
+            if (therapist != null)
+            {
+                return Ok(UserDetailsDto.FromTherapist(therapist));
+            }
+
+            return NotFound("User Not Found");
+        }
+
 
 
     }

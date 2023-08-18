@@ -1,9 +1,8 @@
-﻿using Microsoft.Extensions.Options;
+﻿using DatabaseApi.Models.Entities;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using SystemGateway.Configurations;
-using SystemGateway.Dtos.Entities;
 
 namespace SystemGateway.Providers
 {
@@ -16,53 +15,90 @@ namespace SystemGateway.Providers
             _httpClient = new HttpClient();
             _BaseUrl = options.Value.ConnectionString;
         }
-        public async Task<ICollection<User>> FindAllUsers()
-        {
-            var url = $"{_BaseUrl}/api/User";
-            var response = await _httpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
-                return new List<User>();
-            var responseContent = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<ICollection<User>>(responseContent);
-        }
 
-        public async Task<User?> FindUserById(string Email)
+        public async Task<ICollection<Application>> FindAllApplications()
         {
-            var url = $"{_BaseUrl}/api/User/{Email}";
-            var response = await _httpClient.GetAsync(url);
+            var response = await GetAsync("/Application");
             if (!response.IsSuccessStatusCode)
-                return null;
+                return new List<Application>();
             var responseContent = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<User>(responseContent);
-        }
-        public async Task<ICollection<string>> FindPairedModulesByUserId(string Email)
-        {
-            var url = $"{_BaseUrl}/api/User/{Email}/Connection";
-            var response = await _httpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
-                return new List<string>();
-            var responseContent = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<ISet<string>>(responseContent);
+            return JsonConvert.DeserializeObject<ICollection<Application>>(responseContent);
         }
 
         public async Task<ICollection<Module>> FindAllModules()
         {
-            var url = $"{_BaseUrl}/api/Modules";
-            var response = await _httpClient.GetAsync(url);
+            var response = await GetAsync("/Modules");
             if (!response.IsSuccessStatusCode)
                 return new List<Module>();
             var responseContent = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<ICollection<Module>>(responseContent);
         }
 
-        public async Task<Module?> FindModuleById(string Id)
+        public async Task<ICollection<Patient>> FindAllPatients()
         {
-            var url = $"{_BaseUrl}/api/Modules/{Id}";
-            var response = await _httpClient.GetAsync(url);
+            var response = await GetAsync("/Patient");
+            if (!response.IsSuccessStatusCode)
+                return new List<Patient>();
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<ICollection<Patient>>(responseContent);
+        }
+
+        public async Task<ICollection<Therapist>> FindAllTherapists()
+        {
+            var response = await GetAsync("/Therapist");
+            if (!response.IsSuccessStatusCode)
+                return new List<Therapist>();
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<ICollection<Therapist>>(responseContent);
+        }
+
+        public async Task<Application?> FindApplicationById(string id)
+        {
+            var response = await GetAsync($"/Application/{id}");
+            if (!response.IsSuccessStatusCode)
+                return null;
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<Application>(responseContent);
+        }
+
+        public async Task<HttpResponseMessage> FindModuleById(string id)
+        {
+            var response = await GetAsync($"/Modules/{id}");
             if (!response.IsSuccessStatusCode)
                 return null;
             var responseContent = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<Module>(responseContent);
         }
+        public async Task<Module> DeleteModuleById(string id)
+        {
+            var response = await GetAsync($"/Modules/{id}");
+            if (!response.IsSuccessStatusCode)
+                return null;
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<Module>(responseContent);
+        }
+
+        public async Task<Patient> FindPatientById(string email)
+        {
+            var response = await GetAsync($"/Patient/{email}");
+            if (!response.IsSuccessStatusCode)
+                return null;
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<Patient>(responseContent);
+        }
+
+        public async Task<Therapist?> FindTherapistById(string email)
+        {
+            var response = await GetAsync($"/Therapist/{email}");
+            if (!response.IsSuccessStatusCode)
+                return null;
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<Therapist>(responseContent);
+        }
+
+        private async Task<HttpResponseMessage> GetAsync(string endpoint) => await _httpClient.GetAsync(_BaseUrl+endpoint);
+       
+      
+        
     }
 }

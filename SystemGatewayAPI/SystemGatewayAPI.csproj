@@ -15,4 +15,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Dtos\Input\Module\" />
+    <Folder Include="Dtos\Input\ModuleTemplate\" />
+    <Folder Include="Dtos\Input\Patient\" />
+    <Folder Include="Dtos\Input\Therapist\" />
+  </ItemGroup>
+
 </Project>
