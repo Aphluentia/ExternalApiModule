@@ -1,6 +1,7 @@
 ﻿using DatabaseApi.Models.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using SystemGateway.Dtos.Input;
 using SystemGateway.Dtos.SecurityManager;
@@ -74,20 +75,33 @@ namespace SystemGateway.Controllers
             return Ok($"Welcome {therapist.FirstName} {therapist.LastName}");
         }
 
-        [HttpGet("Information/{UserEmail}")]
-        public async Task<ActionResult<UserDetailsDto>> GetUserDetails(string UserEmail)
+        [HttpGet("Information/{Token}")]
+        public async Task<ActionResult<UserDetailsDto>> GetUserDetails(string Token)
         {
-            if (string.IsNullOrEmpty(UserEmail)) return BadRequest("Email is Required");
-            var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(UserEmail);
-            if (patient != null)
+            var validToken = await ServiceAggregator.SecurityManagerProvider.ValidateSession(Token);
+            if (!validToken) return BadRequest("Token is Not Valid");
+
+            var data = await ServiceAggregator.SecurityManagerProvider.GetTokenData(Token);
+            if (data.UserType == Dtos.Enum.UserType.Therapist)
             {
-                return Ok(UserDetailsDto.FromPatient(patient));
+
+                var therapist = await ServiceAggregator.DatabaseProvider.FindTherapistById(data.Email);
+                if (therapist != null)
+                {
+                    return Ok(UserDetailsDto.FromTherapist(therapist));
+                }
             }
-            var therapist = await ServiceAggregator.DatabaseProvider.FindTherapistById(UserEmail);
-            if (therapist != null)
+            else
             {
-                return Ok(UserDetailsDto.FromTherapist(therapist));
+
+                var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(data.Email);
+                if (patient != null)
+                {
+                    return Ok(UserDetailsDto.FromPatient(patient));
+                }
             }
+            
+           
 
             return NotFound("User Not Found");
         }

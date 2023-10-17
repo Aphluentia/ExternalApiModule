@@ -61,7 +61,7 @@ namespace SystemGateway.Providers
             return JsonConvert.DeserializeObject<Application>(responseContent);
         }
 
-        public async Task<HttpResponseMessage> FindModuleById(string id)
+        public async Task<Module> FindModuleById(string id)
         {
             var response = await GetAsync($"/Modules/{id}");
             if (!response.IsSuccessStatusCode)

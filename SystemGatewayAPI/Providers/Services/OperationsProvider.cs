@@ -17,7 +17,7 @@ namespace SystemGateway.Providers
 
         public async Task<bool> AddApplicationVersion(string ApplicationId, ModuleVersion version)
         {
-            var response = await _httpClient.PutAsJsonAsync($"{_BaseUrl}/ApplicationRegistry/{ApplicationId}", version);
+            var response = await _httpClient.PutAsJsonAsync($"{_BaseUrl}/Application/{ApplicationId}", version);
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;
@@ -41,7 +41,7 @@ namespace SystemGateway.Providers
 
         public async Task<bool> DeleteApplication(string ApplicationId)
         {
-            var response = await _httpClient.DeleteAsync($"{_BaseUrl}/ApplicationRegistry/{ApplicationId}");
+            var response = await _httpClient.DeleteAsync($"{_BaseUrl}/Application/{ApplicationId}");
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;
@@ -49,7 +49,7 @@ namespace SystemGateway.Providers
 
         public async Task<bool> DeleteApplicationVersion(string ApplicationId, string VersionId)
         {
-            var response = await _httpClient.DeleteAsync($"{_BaseUrl}/ApplicationRegistry/{ApplicationId}/Version/{VersionId}");
+            var response = await _httpClient.DeleteAsync($"{_BaseUrl}/Application/{ApplicationId}/Version/{VersionId}");
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;
@@ -105,7 +105,7 @@ namespace SystemGateway.Providers
 
         public async Task<bool> RegisterApplication(Application application)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{_BaseUrl}/ApplicationRegistry", application);
+            var response = await _httpClient.PostAsJsonAsync($"{_BaseUrl}/Application", application);
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;
@@ -137,7 +137,7 @@ namespace SystemGateway.Providers
 
         public async Task<bool> TherapistAcceptPatient(string Email, string PatientEmail)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{_BaseUrl}/Therapist/{Email}/Patient/{PatientEmail}", "");
+            var response = await _httpClient.PutAsJsonAsync($"{_BaseUrl}/Therapist/{Email}/Patient/{PatientEmail}", "");
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;
@@ -153,7 +153,7 @@ namespace SystemGateway.Providers
 
         public async Task<bool> UpdateApplicationVersion(string ApplicationId, string VersionId, ModuleVersion version)
         {
-            var response = await _httpClient.PutAsJsonAsync($"{_BaseUrl}/ApplicationRegistry/{ApplicationId}/Version/{VersionId}", version);
+            var response = await _httpClient.PutAsJsonAsync($"{_BaseUrl}/Application/{ApplicationId}/Version/{VersionId}", version);
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;
@@ -161,6 +161,7 @@ namespace SystemGateway.Providers
 
         public async Task<bool> UpdateModule(string ModuleId, Module module)
         {
+            module.Id = Guid.Parse(ModuleId);
             var response = await _httpClient.PutAsJsonAsync($"{_BaseUrl}/Modules/{ModuleId}", module);
             if (!response.IsSuccessStatusCode)
                 return false;
@@ -185,7 +186,7 @@ namespace SystemGateway.Providers
 
         public async Task<bool> UpdatePatient(string Email, Patient patient)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{_BaseUrl}/Patient/{Email}", patient);
+            var response = await _httpClient.PutAsJsonAsync($"{_BaseUrl}/Patient/{Email}", patient);
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;
@@ -193,6 +194,7 @@ namespace SystemGateway.Providers
 
         public async Task<bool> UpdatePatientModule(string Email, string ModuleId, Module Module)
         {
+            Module.Id = Guid.Parse(ModuleId);
             var response = await _httpClient.PutAsJsonAsync($"{_BaseUrl}/Patient/{Email}/Modules/{ModuleId}", Module);
             if (!response.IsSuccessStatusCode)
                 return false;

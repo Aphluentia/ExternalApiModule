@@ -26,7 +26,7 @@ namespace SystemGateway.Providers
 
         public async Task<SecurityDataDto?> GetTokenData(string Token)
         {
-            var response = await _httpClient.GetAsync($"{_BaseUrl}/api/Session/RetrieveSessionData/{Token}");
+            var response = await _httpClient.GetAsync($"{_BaseUrl}/Session/RetrieveSessionData/{Token}");
             if (!response.IsSuccessStatusCode)
                 return null;
             var data = await response.Content.ReadAsStringAsync();
@@ -36,7 +36,7 @@ namespace SystemGateway.Providers
 
         public async Task<bool> KeepAlive(string _token)
         {
-            var response = await _httpClient.GetAsync($"{_BaseUrl}/api/Session/KeepAlive/{_token}");
+            var response = await _httpClient.GetAsync($"{_BaseUrl}/Session/KeepAlive/{_token}");
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;
@@ -44,7 +44,7 @@ namespace SystemGateway.Providers
 
         public async Task<bool> ValidateSession(string _token)
         {
-            var response = await _httpClient.GetAsync($"{_BaseUrl}/api/Session/ValidateSession/{_token}");
+            var response = await _httpClient.GetAsync($"{_BaseUrl}/Session/ValidateSession/{_token}");
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;

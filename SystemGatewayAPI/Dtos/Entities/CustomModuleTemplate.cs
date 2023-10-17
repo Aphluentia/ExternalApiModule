@@ -9,7 +9,6 @@
             {
                 ModuleName = template.ModuleName,
                 VersionId = version.VersionId,
-                Timestamp = DateTime.UtcNow,
                 DataStructure = version.DataStructure,
                 HtmlCard = version.HtmlCard,
                 HtmlDashboard = version.HtmlDashboard
@@ -22,7 +21,6 @@
             {
                 ModuleName = module.ModuleTemplate.ModuleName,
                 VersionId = module.ModuleTemplate.VersionId,
-                Timestamp = module.ModuleTemplate.Timestamp,
                 DataStructure = module.ModuleTemplate.DataStructure,
                 HtmlCard = module.ModuleTemplate.HtmlCard,
                 HtmlDashboard = module.ModuleTemplate.HtmlDashboard

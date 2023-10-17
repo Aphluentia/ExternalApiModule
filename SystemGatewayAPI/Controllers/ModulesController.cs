@@ -16,26 +16,6 @@ namespace SystemGateway.Controllers
             this.ServiceAggregator = aggregator;
         }
       
-        [HttpGet("{ModuleId}")]
-        public async Task<IActionResult> GetModule(string ModuleId, string? Token)
-        {
-            var module = new Module();
-            switch (string.IsNullOrEmpty(Token))
-            {
-                case true:
-                    module = await ServiceAggregator.DatabaseProvider.FindModuleById(ModuleId);
-                    if (module == null) return NotFound("Application Was not Found");
-                    break;
-                case false:
-                    if (!await this.ServiceAggregator.SecurityManagerProvider.ValidateSession(Token)) return Unauthorized("Unauthorized Request");
-                    var secData = (await this.ServiceAggregator.SecurityManagerProvider.GetTokenData(Token));
-                    var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(secData.Email);
-                    module = patient?.WebPlatform.Modules.Where(c => c.Id == ModuleId).FirstOrDefault();
-                    if (module == null) return NotFound("Application not associated with user");
-                    break; 
-            }
-            return Ok(module);
-        }
         [HttpGet("{ModuleId}/Alive/{Checksum}")]
         public async Task<IActionResult> ModuleIsAlive(string ModuleId,string Checksum, string? Token)
         {
@@ -51,12 +31,12 @@ namespace SystemGateway.Controllers
                     var secData = (await this.ServiceAggregator.SecurityManagerProvider.GetTokenData(Token));
                     if (secData.IsExpired) return Unauthorized("Token Expired");
                     var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(secData.Email);
-                    module = patient?.WebPlatform.Modules.Where(c => c.Id == ModuleId).FirstOrDefault();
+                    module = patient?.WebPlatform.Modules.Where(c => c.Id == Guid.Parse(ModuleId)).FirstOrDefault();
                     if (module == null) return NotFound("Application not associated with user");
                     break;
               
             }
-            if (module.Checksum != Checksum) return Ok(new ModuleAliveDto { IsAlive = true, ChecksumIsDifferent = true });
+            if (module.ModuleTemplate.Checksum != Checksum) return Ok(new ModuleAliveDto { IsAlive = true, ChecksumIsDifferent = true });
             return Ok(new ModuleAliveDto { IsAlive = true, ChecksumIsDifferent = false });
         }
         [HttpGet("{ModuleId}/Updates/{LastUpdateTimestamp}")]
@@ -74,18 +54,20 @@ namespace SystemGateway.Controllers
                     var secData = (await this.ServiceAggregator.SecurityManagerProvider.GetTokenData(Token));
                     if (secData.IsExpired) return Unauthorized("Token Expired");
                     var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(secData.Email);
-                    module = patient?.WebPlatform.Modules.Where(c => c.Id == ModuleId).FirstOrDefault();
+                    module = patient?.WebPlatform.Modules.Where(c => c.Id == Guid.Parse(ModuleId)).FirstOrDefault();
                     if (module == null) return NotFound("Application not associated with user");
                     break;
 
             }
-            if (module.Timestamp > LastUpdateTimestamp) return Ok(new ModuleUpdateDto {HasUpdates = true, ModuleData = module });
+            if (module.ModuleTemplate.Timestamp > LastUpdateTimestamp) return Ok(new ModuleUpdateDto {HasUpdates = true, ModuleData = module });
             return Ok(new ModuleUpdateDto { HasUpdates = false });
         }
 
         [HttpPost]
         public async Task<IActionResult> RegisterModule([FromBody] Module module, string? Token)
         {
+            var application = this.ServiceAggregator.DatabaseProvider.FindApplicationById(module.ModuleTemplate.ModuleName);
+            module.Id = Guid.NewGuid();
             switch (string.IsNullOrEmpty(Token))
             {
                 case true:
@@ -113,13 +95,13 @@ namespace SystemGateway.Controllers
 
             var module = await ServiceAggregator.DatabaseProvider.FindModuleById(ModuleId);
             if (module == null) return NotFound("Application Was not Found");
-            await ServiceAggregator.DatabaseProvider.DeleteModuleFromRegistryById(ModuleId)
+            await ServiceAggregator.OperationsManagerProvider.DeleteModule(ModuleId);
 
             var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(secData.Email);
             if (patient == null) return NotFound("User Not Found");
             if (!await this.ServiceAggregator.OperationsManagerProvider.AddNewModuleToPatient(patient.Email, module))
                 return BadRequest($"Failed to Create Module to patient {patient.Email}");
-
+            return Ok();
            
         }
         [HttpPut("{ModuleId}")]
@@ -140,7 +122,7 @@ namespace SystemGateway.Controllers
                     var secData = (await this.ServiceAggregator.SecurityManagerProvider.GetTokenData(Token));
                     var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(secData.Email);
                     if (patient == null) return NotFound("User Not Found");
-                    if (!patient.WebPlatform.Modules.Any(c => c.Id == ModuleId)) return NotFound("Module not found");
+                    if (!patient.WebPlatform.Modules.Any(c => c.Id == Guid.Parse(ModuleId))) return NotFound("Module not found");
                     if (!await this.ServiceAggregator.OperationsManagerProvider.UpdatePatientModule(patient.Email, ModuleId, updatedModule))
                         return BadRequest($"Failed to update module data");
 
@@ -166,7 +148,7 @@ namespace SystemGateway.Controllers
                     var secData = (await this.ServiceAggregator.SecurityManagerProvider.GetTokenData(Token));
                     var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(secData.Email);
                     if (patient == null) return NotFound("User Not Found");
-                    if (!patient.WebPlatform.Modules.Any(c => c.Id == ModuleId)) return NotFound("Module not found");
+                    if (!patient.WebPlatform.Modules.Any(c => c.Id == Guid.Parse(ModuleId))) return NotFound("Module not found");
                     if (!await this.ServiceAggregator.OperationsManagerProvider.UpdatePatientModuleToVersion(patient.Email, ModuleId, VersionId))
                         return BadRequest($"Failed to update module data");
 
@@ -192,7 +174,7 @@ namespace SystemGateway.Controllers
                     var secData = (await this.ServiceAggregator.SecurityManagerProvider.GetTokenData(Token));
                     var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(secData.Email);
                     if (patient == null) return NotFound("User Not Found");
-                    if (!patient.WebPlatform.Modules.Any(c => c.Id == ModuleId)) return NotFound("Module not found");
+                    if (!patient.WebPlatform.Modules.Any(c => c.Id == Guid.Parse(ModuleId))) return NotFound("Module not found");
                     if (!await this.ServiceAggregator.OperationsManagerProvider.DeletePatientModule(patient.Email, ModuleId))
                         return BadRequest($"Failed to delete patient's module");
 
