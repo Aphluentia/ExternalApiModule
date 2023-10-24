@@ -13,5 +13,6 @@
         public static Error NoPermissions => new Error(nameof(NoPermissions), "Current user doesn't have permission to access this data");
         public static Error UserNotFound => new Error(nameof(UserNotFound), "User was not found (Not Registered)");
         public static Error InvalidCredentials => new Error(nameof(InvalidCredentials), "Invalid Credentials");
+        public static Error UserAlreadyExists => new Error(nameof(UserAlreadyExists), "There is already a user registered with that email");
     }
 }

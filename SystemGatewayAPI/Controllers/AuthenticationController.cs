@@ -1,13 +1,15 @@
-﻿using DatabaseApi.Models.Entities;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
-using SystemGateway.Dtos.Input;
+using SystemGateway.Dtos.Enum;
 using SystemGateway.Dtos.SecurityManager;
 using SystemGateway.Helpers;
 using SystemGateway.Providers;
 using SystemGatewayAPI.Dtos;
+using SystemGatewayAPI.Dtos.Entities.Database;
+using SystemGatewayAPI.Dtos.Entities.SecurityManager;
+using SystemGatewayAPI.Dtos.SecurityManager;
 
 namespace SystemGateway.Controllers
 {
@@ -20,10 +22,10 @@ namespace SystemGateway.Controllers
         {
             this.ServiceAggregator = aggregator;
         }
-        [HttpPost("AuthenticateUser")]
-        public async Task<IActionResult> AuthenticateUser([FromBody] AuthenticateUserInputDto input)
+        [HttpPost("Authenticate/{UserType}")]
+        public async Task<IActionResult> AuthenticateAndGenerateToken(UserType userType, [FromBody] AuthenticateInputDto input)
         {
-            switch (input.UserType)
+            switch (userType)
             {
                 case Dtos.Enum.UserType.Patient:
                     var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(input.Email);
@@ -36,75 +38,53 @@ namespace SystemGateway.Controllers
                     if (!AuthenticationHelper.AuthenticateUser(therapist.Password, input.Password)) return BadRequest(ApplicationErrors.InvalidCredentials);
                     break;
                 default:
-                    return BadRequest();
+                    return BadRequest("User Type not defined");
             }
-          
-            return Ok("User Authenticated");
-        }
-        [HttpPost("RegisterPatient")]
-        public async Task<IActionResult> RegisterPatient([FromBody] Patient patient)
-        {
-            if (string.IsNullOrEmpty(patient.Email)) return BadRequest("Email is Required");
-            if (string.IsNullOrEmpty(patient.Password)) return BadRequest("Password is Required");
-            if (string.IsNullOrEmpty(patient.FirstName)) return BadRequest("First Name is Required");
-            if (string.IsNullOrEmpty(patient.LastName)) return BadRequest("Last Name is Required");
-            var patientExists = await ServiceAggregator.DatabaseProvider.FindPatientById(patient.Email);
-            if (patientExists != null) return BadRequest("That Email is already In Use");
-
-            patient.Password = AuthenticationHelper.HashPassword(patient.Password);
-            patient.WebPlatform = null;
-            
-            var registerPatient = await ServiceAggregator.OperationsManagerProvider.RegisterPatient(patient);
-            if (!registerPatient) return BadRequest("Failed to register user");
-            return Ok($"Welcome {patient.FirstName} {patient.LastName}");
-        }
-        [HttpPost("RegisterTherapist")]
-        public async Task<IActionResult> RegisterTherapist([FromBody] Therapist therapist)
-        {
-            if (string.IsNullOrEmpty(therapist.Email)) return BadRequest("Email is Required");
-            if (string.IsNullOrEmpty(therapist.Password)) return BadRequest("Password is Required");
-            if (string.IsNullOrEmpty(therapist.FirstName)) return BadRequest("First Name is Required");
-            if (string.IsNullOrEmpty(therapist.LastName)) return BadRequest("Last Name is Required");
-            var patientExists = await ServiceAggregator.DatabaseProvider.FindTherapistById(therapist.Email);
-            if (patientExists != null) return BadRequest("That Email is already In Use");
-
-            therapist.Password = AuthenticationHelper.HashPassword(therapist.Password);
-
-            var registerPatient = await ServiceAggregator.OperationsManagerProvider.RegisterTherapist(therapist);
-            if (!registerPatient) return BadRequest("Failed to register user");
-            return Ok($"Welcome {therapist.FirstName} {therapist.LastName}");
+            return Ok(await ServiceAggregator.SecurityManagerProvider.GenerateSession(new SecurityDataDto
+            {
+                Email = input.Email,
+                UserType = userType
+            }));
         }
 
         [HttpGet("Information/{Token}")]
-        public async Task<ActionResult<UserDetailsDto>> GetUserDetails(string Token)
+        public async Task<ActionResult<SessionData>> FetchUserDetails(string Token)
         {
             var validToken = await ServiceAggregator.SecurityManagerProvider.ValidateSession(Token);
             if (!validToken) return BadRequest("Token is Not Valid");
 
-            var data = await ServiceAggregator.SecurityManagerProvider.GetTokenData(Token);
+            var data = await ServiceAggregator.SecurityManagerProvider.FetchTokenData(Token);
+            User user = null;
+
             if (data.UserType == Dtos.Enum.UserType.Therapist)
             {
-
-                var therapist = await ServiceAggregator.DatabaseProvider.FindTherapistById(data.Email);
-                if (therapist != null)
-                {
-                    return Ok(UserDetailsDto.FromTherapist(therapist));
-                }
+                user = await ServiceAggregator.DatabaseProvider.FindTherapistById(data.Email);
             }
             else
             {
-
-                var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(data.Email);
-                if (patient != null)
-                {
-                    return Ok(UserDetailsDto.FromPatient(patient));
-                }
+                user = await ServiceAggregator.DatabaseProvider.FindPatientById(data.Email);
             }
-            
-           
+            if (user != null)
+                return Ok(SessionData.MapFromUser(user, data));
 
             return NotFound("User Not Found");
         }
+
+        [HttpDelete("{Token}/Modules")]
+        public async Task<IActionResult> ClearCachedData(string Token)
+        {
+            var validToken = await ServiceAggregator.SecurityManagerProvider.ValidateSession(Token);
+            if (!validToken) return BadRequest("Token is Not Valid");
+
+            var data = await ServiceAggregator.SecurityManagerProvider.FetchTokenData(Token);
+            foreach(ModuleSnapshot moduleSnapshot in data.ModuleSnapshots)
+            {
+                await ServiceAggregator.SecurityManagerProvider.DeleteModuleSnapshot(Token, moduleSnapshot.ModuleId);
+            }
+            return Ok();
+        }
+
+
 
 
 
