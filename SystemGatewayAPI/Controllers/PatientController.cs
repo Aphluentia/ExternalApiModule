@@ -107,7 +107,7 @@ namespace SystemGatewayAPI.Controllers
             var actionResponse = await ServiceAggregator.OperationsManagerProvider.AddNewModuleToPatient(isTokenValid.Email, Module);
             if (actionResponse.Code != HttpStatusCode.OK)
                 return BadRequest(actionResponse.Message);
-            return Ok("Module Registered and Paired with Success");
+            return Ok(actionResponse.Message);
         }
 
         [HttpPut("{Token}/Modules/{ModuleId}")] // public Task<ActionResponse> UpdatePatientModule(string Email, string ModuleId, Module Module); UPDATE_PATIENT_MODULE
@@ -192,6 +192,41 @@ namespace SystemGatewayAPI.Controllers
             var result = await ServiceAggregator.OperationsManagerProvider.PatientRequestTherapist(isTokenValid.Email, therapistEmail);
             if (result.Code != System.Net.HttpStatusCode.OK) return BadRequest(result.Message);
             return Ok("Therapist Accepted");
+        }
+
+        [HttpPost("{token}/Modules/{ModuleId}/Profile/{ProfileName}")] 
+        public async Task<IActionResult> AddNewProfile(string token, Guid ModuleId, string ProfileName)
+        {
+
+            var isTokenValid = await ServiceAggregator.SecurityManagerProvider.FetchTokenData(token);
+            if (isTokenValid == null || isTokenValid.IsExpired)
+            {
+                return BadRequest("Session is Expired");
+            }
+            if (isTokenValid.UserType == SystemGateway.Dtos.Enum.UserType.Therapist)
+                return BadRequest("User is not a Patient");
+
+
+            var result = await ServiceAggregator.OperationsManagerProvider.PatientAddNewModuleContext(isTokenValid.Email, ModuleId.ToString(), ProfileName);
+            if (result.Code != System.Net.HttpStatusCode.OK) return BadRequest(result.Message);
+            return Ok("Created new Profile");
+        }
+
+        [HttpDelete("{token}/Modules/{ModuleId}/Profile/{ProfileName}")] // public Task<ActionResponse> UpdateModule(string ModuleId, Module module); //UPDATE_MODULE,
+        public async Task<IActionResult> DeleteProfile(string token, Guid ModuleId, string ProfileName)
+        {
+            var isTokenValid = await ServiceAggregator.SecurityManagerProvider.FetchTokenData(token);
+            if (isTokenValid == null || isTokenValid.IsExpired)
+            {
+                return BadRequest("Session is Expired");
+            }
+            if (isTokenValid.UserType == SystemGateway.Dtos.Enum.UserType.Therapist)
+                return BadRequest("User is not a Patient");
+
+
+            var result = await ServiceAggregator.OperationsManagerProvider.PatientDeleteModuleContext(isTokenValid.Email, ModuleId.ToString(), ProfileName);
+            if (result.Code != System.Net.HttpStatusCode.OK) return BadRequest(result.Message);
+            return Ok("Removed Profile");
         }
         // Database Fetch Operations --------------------------------------------------------------------------------------------
 

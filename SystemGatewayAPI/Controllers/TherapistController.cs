@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Net;
 using SystemGateway;
 using SystemGateway.Helpers;
@@ -348,6 +349,68 @@ namespace SystemGatewayAPI.Controllers
             return Ok(new ModuleStatusCheck { HasUpdates = false });
         }
 
+        [HttpPost("{token}/Patients/{patientEmail}/Modules/{ModuleId}/Profile/{ProfileName}")]
+        public async Task<IActionResult> AddPatientModuleProfile(string Token, string patientEmail, Guid ModuleId, string ProfileName)
+        {
+            var isTokenValid = await ServiceAggregator.SecurityManagerProvider.FetchTokenData(Token);
+            if (isTokenValid == null || isTokenValid.IsExpired)
+                return BadRequest("Session is Expired");
+
+            if (isTokenValid.UserType == SystemGateway.Dtos.Enum.UserType.Patient)
+                return BadRequest("User is not a Therapist");
+
+            var therapist = await ServiceAggregator.DatabaseProvider.FindTherapistById(isTokenValid.Email);
+            if (therapist == null) return NotFound("therapist not Found");
+            if (!therapist.AcceptedPatients.Contains(patientEmail)) return Unauthorized("Access to Patient Information Not Authorized");
+
+
+            var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(patientEmail);
+            if (patient == null || patient.Modules == null)
+            {
+                await ServiceAggregator.OperationsManagerProvider.TherapistRejectPatient(isTokenValid.Email, patientEmail);
+                return NotFound("Patient not Found");
+            }
+            var module = patient.Modules.FirstOrDefault(c => c.Id == ModuleId);
+            if (module == null)
+                return NotFound("Module Not Found");
+
+            var actionResponse = await ServiceAggregator.OperationsManagerProvider.PatientAddNewModuleContext(isTokenValid.Email, ModuleId.ToString(), ProfileName);
+            if (actionResponse.Code != HttpStatusCode.OK)
+                return BadRequest(actionResponse.Message);
+
+            return Ok(module);
+        }
+        [HttpDelete("{token}/Patients/{patientEmail}/Modules/{ModuleId}/Profile/{ProfileName}")]
+        public async Task<IActionResult> DeletePatientModuleProfile(string Token, string patientEmail, Guid ModuleId, string ProfileName)
+        {
+            var isTokenValid = await ServiceAggregator.SecurityManagerProvider.FetchTokenData(Token);
+            if (isTokenValid == null || isTokenValid.IsExpired)
+                return BadRequest("Session is Expired");
+
+            if (isTokenValid.UserType == SystemGateway.Dtos.Enum.UserType.Patient)
+                return BadRequest("User is not a Therapist");
+
+            var therapist = await ServiceAggregator.DatabaseProvider.FindTherapistById(isTokenValid.Email);
+            if (therapist == null) return NotFound("therapist not Found");
+            if (!therapist.AcceptedPatients.Contains(patientEmail)) return Unauthorized("Access to Patient Information Not Authorized");
+
+
+            var patient = await ServiceAggregator.DatabaseProvider.FindPatientById(patientEmail);
+            if (patient == null || patient.Modules == null)
+            {
+                await ServiceAggregator.OperationsManagerProvider.TherapistRejectPatient(isTokenValid.Email, patientEmail);
+                return NotFound("Patient not Found");
+            }
+            var module = patient.Modules.FirstOrDefault(c => c.Id == ModuleId);
+            if (module == null)
+                return NotFound("Module Not Found");
+
+            var actionResponse = await ServiceAggregator.OperationsManagerProvider.PatientDeleteModuleContext(isTokenValid.Email, ModuleId.ToString(), ProfileName);
+            if (actionResponse.Code != HttpStatusCode.OK)
+                return BadRequest(actionResponse.Message);
+
+            return Ok(module);
+        }
 
     }
 }

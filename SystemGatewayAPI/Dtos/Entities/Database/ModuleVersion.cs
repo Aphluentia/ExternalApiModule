@@ -4,6 +4,7 @@
     {
         public string VersionId { get; set; }
         public string ApplicationName { get; set; }
+        public string ActiveContextName { get; set; } = "";
         public ICollection<DataPoint> DataStructure { get; set; } = new List<DataPoint>();
         public string? HtmlCard { get; set; } = "";
         public string? HtmlDashboard { get; set; } = "";

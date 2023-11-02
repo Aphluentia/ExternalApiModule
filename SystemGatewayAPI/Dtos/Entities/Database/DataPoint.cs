@@ -9,7 +9,7 @@ namespace SystemGatewayAPI.Dtos.Entities.Database
     {
         public string SectionName { get; set; }
         public bool isDataEditable { get; set; }
-
+        public string ContextName { get; set; }
         private object _Content { get; set; }
 
         public object Content

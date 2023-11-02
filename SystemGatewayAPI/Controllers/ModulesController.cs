@@ -25,7 +25,7 @@ namespace SystemGateway.Controllers
             var operation = await this.ServiceAggregator.OperationsManagerProvider.RegisterModule(module);
             if (operation.Code != System.Net.HttpStatusCode.OK)
                 return BadRequest(operation.Message);
-            return Ok("Module Registered with Success");
+            return Ok(operation.Message);
         }
         [HttpPut("{ModuleId}")] // public Task<ActionResponse> UpdateModule(string ModuleId, Module module); //UPDATE_MODULE,
         public async Task<IActionResult> UpdateModule(Guid ModuleId, [FromBody] ModuleVersion updatedModule) 
@@ -36,6 +36,25 @@ namespace SystemGateway.Controllers
                 ModuleData = updatedModule
             };
             var actionResponse = await this.ServiceAggregator.OperationsManagerProvider.UpdateModule(ModuleId.ToString(), module);
+            if (actionResponse.Code != System.Net.HttpStatusCode.OK)
+                return BadRequest(actionResponse.Message);
+            return Ok("Module updated with Success");
+        }
+
+        [HttpPost("{ModuleId}/Profile/{ProfileName}")] // public Task<ActionResponse> UpdateModule(string ModuleId, Module module); //UPDATE_MODULE,
+        public async Task<IActionResult> AddNewProfile(Guid ModuleId, string ProfileName)
+        {
+         
+            var actionResponse = await this.ServiceAggregator.OperationsManagerProvider.ModuleAddNewContext(ModuleId.ToString(), ProfileName);
+            if (actionResponse.Code != System.Net.HttpStatusCode.OK)
+                return BadRequest(actionResponse.Message);
+            return Ok("Module updated with Success");
+        }
+
+        [HttpDelete("{ModuleId}/Profile/{ProfileName}")] // public Task<ActionResponse> UpdateModule(string ModuleId, Module module); //UPDATE_MODULE,
+        public async Task<IActionResult> DeleteProfile(Guid ModuleId, string ProfileName)
+        {
+            var actionResponse = await this.ServiceAggregator.OperationsManagerProvider.ModuleDeleteContext(ModuleId.ToString(), ProfileName);
             if (actionResponse.Code != System.Net.HttpStatusCode.OK)
                 return BadRequest(actionResponse.Message);
             return Ok("Module updated with Success");

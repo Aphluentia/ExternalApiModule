@@ -65,6 +65,17 @@ namespace SystemGateway.Providers
             var response = await _httpClient.PostAsJsonAsync($"{_BaseUrl}/Modules", module);
             return await GetResponse(response);
         }
+        public async Task<ActionResponse> ModuleAddNewContext(string ModuleId, string ProfileName)
+        {
+            var response = await _httpClient.PostAsJsonAsync($"{_BaseUrl}/Modules/{ModuleId}/Profile/{ProfileName}", "");
+            return await GetResponse(response);
+        }
+
+        public async Task<ActionResponse> ModuleDeleteContext(string ModuleId, string ProfileName)
+        {
+            var response = await _httpClient.DeleteAsync($"{_BaseUrl}/Modules/{ModuleId}/Profile/{ProfileName}");
+            return await GetResponse(response);
+        }
         public async Task<ActionResponse> UpdateModule(string ModuleId, Module module)
         {
             var response = await _httpClient.PutAsJsonAsync($"{_BaseUrl}/Modules/{ModuleId}", module.ModuleData);
@@ -105,6 +116,17 @@ namespace SystemGateway.Providers
         public async Task<ActionResponse> AddNewModuleToPatient(string Email, Module Module)
         {
             var response = await _httpClient.PostAsJsonAsync($"{_BaseUrl}/Patient/{Email}/Modules", Module);
+            return await GetResponse(response);
+        }
+        public async Task<ActionResponse> PatientAddNewModuleContext(string Email, string ModuleId, string ProfileName)
+        {
+            var response = await _httpClient.PostAsJsonAsync($"{_BaseUrl}/Patient/{Email}/Modules/{ModuleId}/Profile/{ProfileName}", "");
+            return await GetResponse(response);
+        }
+
+        public async Task<ActionResponse> PatientDeleteModuleContext(string Email, string ModuleId, string ProfileName)
+        {
+            var response = await _httpClient.DeleteAsync($"{_BaseUrl}/Patient/{Email}/Modules/{ModuleId}/Profile/{ProfileName}");
             return await GetResponse(response);
         }
         public async Task<ActionResponse> UpdatePatientModule(string Email, string ModuleId, Module Module)
@@ -162,5 +184,9 @@ namespace SystemGateway.Providers
             var response = await _httpClient.DeleteAsync($"{_BaseUrl}/Therapist/{Email}/Patient/{PatientEmail}");
             return await GetResponse(response);
         }
+
+       
+
+    
     }
 }

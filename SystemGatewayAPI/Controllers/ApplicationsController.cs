@@ -39,14 +39,14 @@ namespace SystemGatewayAPI.Controllers
         //        return BadRequest(response.Message);
         //    return Ok(response);
         //}
-        [HttpDelete("{ApplicationName}/Version/{VersionId}")] // DELETE_APPLICATION_VERSION
-        public async Task<IActionResult> DeleteApplicationVersion(string ApplicationName, string VersionId)
-        {
-            var response = await ServiceAggregator.OperationsManagerProvider.DeleteApplicationVersion(ApplicationName, VersionId);
-            if (response.Code != System.Net.HttpStatusCode.OK)
-                return BadRequest(response.Message);
-            return Ok(response);
-        }
+        //[HttpDelete("{ApplicationName}/Version/{VersionId}")] // DELETE_APPLICATION_VERSION
+        //public async Task<IActionResult> DeleteApplicationVersion(string ApplicationName, string VersionId)
+        //{
+        //    var response = await ServiceAggregator.OperationsManagerProvider.DeleteApplicationVersion(ApplicationName, VersionId);
+        //    if (response.Code != System.Net.HttpStatusCode.OK)
+        //        return BadRequest(response.Message);
+        //    return Ok(response);
+        //}
         [HttpDelete("{ApplicationName}")] // DELETE_APPLICATION
         public async Task<IActionResult> DeleteApplication(string ApplicationName)
         {
