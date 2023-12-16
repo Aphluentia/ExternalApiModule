@@ -1,5 +1,6 @@
-# ExternalModule
-Module that allows communication from external modules with the inner application
+# ExternalModule  
+Acts as the gateway for the system, interfacing with DatabaseAPI, OperationsAPI, and SecurityManager. Ensures controlled access to the system's functionalities for optimal performance.  
+
 
 ## Setup       
 - docker build . -t systemgateway    
